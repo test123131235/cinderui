@@ -31,6 +31,7 @@ local cloneref = cloneref or function(i) return i end
 local Players = cloneref(game:GetService("Players"))
 local TweenService = cloneref(game:GetService("TweenService"))
 local UserInputService = cloneref(game:GetService("UserInputService"))
+local TextService = cloneref(game:GetService("TextService"))
 local LocalPlayer = Players.LocalPlayer
 
 local genv = (getgenv and getgenv()) or _G
@@ -1263,30 +1264,43 @@ function Window:SetVisible(state)
 	return self
 end
 
+local function measureText(text, size, width)
+	local ok, res = pcall(function()
+		local params = Instance.new("GetTextBoundsParams")
+		params.Text = text
+		params.Font = Library.FontFace
+		params.Size = size
+		params.Width = width
+		return TextService:GetTextBoundsAsync(params).Y
+	end)
+	if ok and type(res) == "number" and res > 0 then return math.ceil(res) end
+	local lines = math.max(1, math.ceil(#text * size * 0.55 / width))
+	return lines * (size + 2)
+end
+
 function Window:Notify(title, text, duration)
 	if self._destroyed then return end
 	duration = tonumber(duration) or 4
+	title, text = tostring(title or ""), tostring(text or "")
+	-- fixed, measured height (no AutomaticSize) so a toast can never grow past its text
+	local innerWidth = 240
+	local bodyH = measureText(text, 14, innerWidth)
 	local toast = create("Frame", {
 		BackgroundColor3 = Theme.Background, BackgroundTransparency = Theme.BackgroundTransparency, BorderSizePixel = 0,
-		Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 20,
+		Size = UDim2.new(1, 0, 0, 8 + 18 + 2 + bodyH + 8), ClipsDescendants = true, ZIndex = 20,
 	}, self._notifyHolder)
-	-- plain stroke (not addEdge): the sketch edge frames are scale-sized, and inside an auto-sized,
-	-- list-laid-out toast they make it grow to fill the whole screen
 	plainStroke(toast, Theme.Ink, 0.35)
-	create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, toast)
-	create("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2) }, toast)
-	local t = textLabel(title or "", 15)
+	local t = textLabel(title, 15)
 	t.TextColor3 = Theme.Header
-	t.Size = UDim2.new(1, 0, 0, 18)
-	t.LayoutOrder = 1
+	t.Size = UDim2.new(1, -20, 0, 18)
+	t.Position = UDim2.new(0, 10, 0, 8)
 	t.ZIndex = 21
 	t.Parent = toast
-	local b = textLabel(text or "", 14)
+	local b = textLabel(text, 14)
 	b.TextWrapped = true
 	b.TextYAlignment = Enum.TextYAlignment.Top
-	b.Size = UDim2.new(1, 0, 0, 0)
-	b.AutomaticSize = Enum.AutomaticSize.Y
-	b.LayoutOrder = 2
+	b.Size = UDim2.new(1, -20, 0, bodyH)
+	b.Position = UDim2.new(0, 10, 0, 28)
 	b.ZIndex = 21
 	b.Parent = toast
 	task.delay(duration, function()
