@@ -84,6 +84,7 @@ Library.Defaults = {
 	MaxHeight = 600,
 	Target = nil, -- table that mirrors every control value (by path)
 	DisplayOrder = 14,
+	ForceEnglish = true, -- disables Roblox auto-translation (AutoLocalize) on every UI element
 }
 
 --------------------------------------------------------------------------------------------------
@@ -190,7 +191,7 @@ end
 -- visuals --------------------------------------------------------------------------------------
 local function textLabel(text, size, align)
 	local l = create("TextLabel", {
-		BackgroundTransparency = 1, BorderSizePixel = 0, Text = tostring(text),
+		BackgroundTransparency = 1, BorderSizePixel = 0, Text = tostring(text), AutoLocalize = false,
 		FontFace = Library.FontFace, TextSize = size or 15, TextColor3 = Theme.Label,
 		TextXAlignment = align or Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center,
 		RichText = false,
@@ -630,7 +631,7 @@ function Tab:AddInput(def)
 	well.Parent = row
 	hoverGlow(well, well, Theme.Accent)
 	local box = create("TextBox", {
-		Name = "Field", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 7, 0, 0),
+		Name = "Field", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 7, 0, 0), AutoLocalize = false,
 		FontFace = Library.FontFace, TextSize = 14, TextColor3 = Theme.Value, PlaceholderText = tostring(def.placeholder or ""),
 		PlaceholderColor3 = Theme.Muted, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, ClipsDescendants = true, Text = "",
 	}, well)
@@ -985,6 +986,19 @@ function Window:_build()
 	local parent, protected = getGuiParent()
 	local gui = create("ScreenGui", { Name = randomName(), ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = self._opt.DisplayOrder })
 	if protected then protect(gui) end
+
+	-- keep the UI in English: stop Roblox from auto-translating any text in it
+	if self._opt.ForceEnglish ~= false then
+		local function lock(o)
+			if o:IsA("GuiBase2d") then
+				pcall(function() o.AutoLocalize = false end)
+			end
+		end
+		lock(gui)
+		self._lockEnglish = lock
+		self:_track(gui.DescendantAdded:Connect(lock))
+	end
+
 	gui.Parent = parent
 	self.Gui = gui
 	self:_buildToggleButton()
