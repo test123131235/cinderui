@@ -1017,7 +1017,7 @@ function Window:AddTab(name)
 
 	local btn = create("TextButton", { Name = "Tab_" .. name, Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Ink, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 30), LayoutOrder = order }, self.TabList)
 	tab.Button = btn
-	local label = textLabel(name, 15)
+	local label = textLabel(name, Library.TabTextSize or 18)
 	label.Size = UDim2.new(1, -10, 1, 0)
 	label.Position = UDim2.new(0, 8, 0, 0)
 	label.TextTruncate = Enum.TextTruncate.AtEnd
