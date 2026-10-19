@@ -73,6 +73,7 @@ Library.Defaults = {
 	AnchorPoint = Vector2.new(0.5, 0.5),
 	TogglePosition = UDim2.new(0, 24, 0.5, 0),
 	ToggleSize = 60,
+	AlwaysShowLauncher = true, -- launcher square stays visible while the window is open
 	ToggleText = nil,
 	ToggleIcon = nil, -- "rbxassetid://..."
 	ToggleKeyCode = nil, -- Enum.KeyCode.RightShift
@@ -323,7 +324,7 @@ end
 function Tab:AddSection(text)
 	local row = newRow(30)
 	row.Name = "Section"
-	local l = textLabel(string.upper(tostring(text)), 14, Enum.TextXAlignment.Left)
+	local l = textLabel(string.upper(tostring(text)), 18, Enum.TextXAlignment.Left)
 	l.TextColor3 = Theme.Muted
 	l.Size = UDim2.new(1, 0, 0, 24)
 	l.Parent = row
@@ -338,7 +339,7 @@ function Tab:AddLabel(text)
 	local row = newRow(0)
 	row.Name = "Label"
 	row.AutomaticSize = Enum.AutomaticSize.Y
-	local l = textLabel(text, 14, Enum.TextXAlignment.Left)
+	local l = textLabel(text, 17, Enum.TextXAlignment.Left)
 	l.TextColor3 = Theme.Muted
 	l.TextWrapped = true
 	l.TextYAlignment = Enum.TextYAlignment.Top
@@ -367,7 +368,7 @@ function Tab:AddButton(def)
 	addEdge(btn, Theme.Ink, nil, 0.5)
 	hoverGlow(btn, btn, Theme.Flash)
 	hoverScale(btn, btn, 1.03)
-	local l = textLabel(def.label or "Button", 15, Enum.TextXAlignment.Center)
+	local l = textLabel(def.label or "Button", 18, Enum.TextXAlignment.Center)
 	l.Size = UDim2.fromScale(1, 1)
 	l.Parent = btn
 	btn.MouseButton1Click:Connect(function()
@@ -388,7 +389,7 @@ function Tab:AddToggle(def)
 	local row = newRow(26)
 	row.Name = "Toggle_" .. tostring(def.key)
 	local hit = create("TextButton", { Name = "Hit", Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, row)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(1, -34, 1, 0)
 	l.Parent = hit
 	local box, render = newCheckBox(hit, 22)
@@ -410,10 +411,10 @@ function Tab:AddSlider(def)
 
 	local row = newRow(48)
 	row.Name = "Slider_" .. tostring(def.key)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(1, -90, 0, 22)
 	l.Parent = row
-	local readout = textLabel("", 14, Enum.TextXAlignment.Right)
+	local readout = textLabel("", 17, Enum.TextXAlignment.Right)
 	readout.TextColor3 = Theme.Accent
 	readout.Size = UDim2.new(0, 90, 0, 22)
 	readout.Position = UDim2.new(1, -90, 0, 0)
@@ -491,7 +492,7 @@ local function newSelectedButton(row, text)
 	}, row)
 	addEdge(btn, Theme.Ink, nil, 0.5)
 	hoverGlow(btn, btn, Theme.Accent)
-	local l = textLabel(text or "", 14)
+	local l = textLabel(text or "", 17)
 	l.Size = UDim2.new(1, -22, 1, 0)
 	l.Position = UDim2.new(0, 8, 0, 0)
 	l.TextTruncate = Enum.TextTruncate.AtEnd
@@ -522,7 +523,7 @@ function Tab:AddDropdown(def)
 
 	local row = newRow(32)
 	row.Name = "Dropdown_" .. tostring(def.key)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(0.42, -6, 0, 32)
 	l.Parent = row
 	local selBtn, selLabel, arrow = newSelectedButton(row, "")
@@ -542,7 +543,7 @@ function Tab:AddDropdown(def)
 		popup.Count = #options
 		for i, name in ipairs(options) do
 			local b = create("TextButton", { Name = "Option_" .. name, Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 24), LayoutOrder = i }, popup.List)
-			local t = textLabel(name, 14)
+			local t = textLabel(name, 17)
 			t.Size = UDim2.new(1, -16, 1, 0)
 			t.Position = UDim2.new(0, 8, 0, 0)
 			t.TextTruncate = Enum.TextTruncate.AtEnd
@@ -581,7 +582,7 @@ function Tab:AddMultiDropdown(def)
 	local options = def.options or {}
 	local row = newRow(32)
 	row.Name = "MultiDropdown_" .. tostring(def.label or "")
-	local l = textLabel(def.label or "Select", 15)
+	local l = textLabel(def.label or "Select", 18)
 	l.Size = UDim2.new(0.42, -6, 0, 32)
 	l.Parent = row
 	local selBtn, selLabel, arrow = newSelectedButton(row, "")
@@ -601,7 +602,7 @@ function Tab:AddMultiDropdown(def)
 
 	for i, option in ipairs(options) do
 		local b = create("TextButton", { Name = "Option_" .. tostring(option.key), Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 24), LayoutOrder = i }, popup.List)
-		local t = textLabel(option.label or option.key, 14)
+		local t = textLabel(option.label or option.key, 17)
 		t.Size = UDim2.new(1, -30, 1, 0)
 		t.Position = UDim2.new(0, 8, 0, 0)
 		t.TextTruncate = Enum.TextTruncate.AtEnd
@@ -623,7 +624,7 @@ function Tab:AddInput(def)
 	local window = self._window
 	local row = newRow(28)
 	row.Name = "Input_" .. tostring(def.key)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(0.42, -8, 1, 0)
 	l.Parent = row
 	local well = newWell(24)
@@ -633,7 +634,7 @@ function Tab:AddInput(def)
 	hoverGlow(well, well, Theme.Accent)
 	local box = create("TextBox", {
 		Name = "Field", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 7, 0, 0), AutoLocalize = false,
-		FontFace = Library.FontFace, TextSize = 14, TextColor3 = Theme.Value, PlaceholderText = tostring(def.placeholder or ""),
+		FontFace = Library.FontFace, TextSize = 17, TextColor3 = Theme.Value, PlaceholderText = tostring(def.placeholder or ""),
 		PlaceholderColor3 = Theme.Muted, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, ClipsDescendants = true, Text = "",
 	}, well)
 	local function render(v)
@@ -660,7 +661,7 @@ function Tab:AddColorPicker(def)
 	local channels = { "R", "G", "B" }
 	local row = newRow(32)
 	row.Name = "ColorPicker_" .. tostring(def.key)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(1, -40, 1, 0)
 	l.Parent = row
 	local swatch = create("TextButton", {
@@ -754,7 +755,7 @@ function Tab:AddKeybind(def)
 	local window = self._window
 	local row = newRow(26)
 	row.Name = "Keybind_" .. tostring(def.key)
-	local l = textLabel(def.label or def.key, 15)
+	local l = textLabel(def.label or def.key, 18)
 	l.Size = UDim2.new(1, -100, 1, 0)
 	l.Parent = row
 	local btn = create("TextButton", {
@@ -933,7 +934,7 @@ function Window:_buildWindow()
 	self._headerSweep:Play()
 	addEdge(header, Theme.Ink, 1)
 
-	local title = textLabel(opt.Title, 17, Enum.TextXAlignment.Left)
+	local title = textLabel(opt.Title, 20, Enum.TextXAlignment.Left)
 	title.Name = "Title"
 	title.Size = UDim2.new(1, -80, 1, 0)
 	title.Position = UDim2.new(0, 12, 0, 0)
@@ -942,13 +943,15 @@ function Window:_buildWindow()
 	self.Title = title
 
 	local close = create("TextButton", { Name = "Close", Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(40, 28), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), ZIndex = 2 }, header)
-	local x = textLabel("x", 17, Enum.TextXAlignment.Center)
-	x.Size = UDim2.fromScale(1, 1)
-	x.Parent = close
+	local x = create("Frame", { Name = "X", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), ZIndex = 3 }, close)
+	local bars = {}
+	for _, rot in ipairs({ 45, -45 }) do
+		bars[#bars + 1] = create("Frame", { BackgroundColor3 = Theme.Label, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(18, 3), Rotation = rot, ZIndex = 3 }, x)
+	end
 	hoverGlow(close, close, Theme.Danger, 0.55)
 	hoverScale(close, close, 1.2)
-	close.MouseEnter:Connect(function() TweenService:Create(x, TweenInfo.new(0.16), { TextColor3 = Theme.Flash }):Play() end)
-	close.MouseLeave:Connect(function() TweenService:Create(x, TweenInfo.new(0.22), { TextColor3 = Theme.Label }):Play() end)
+	close.MouseEnter:Connect(function() for _, b in ipairs(bars) do TweenService:Create(b, TweenInfo.new(0.16), { BackgroundColor3 = Theme.Flash }):Play() end end)
+	close.MouseLeave:Connect(function() for _, b in ipairs(bars) do TweenService:Create(b, TweenInfo.new(0.22), { BackgroundColor3 = Theme.Label }):Play() end end)
 	close.MouseButton1Click:Connect(function() self:Close() end)
 
 	-- sidebar
@@ -1018,7 +1021,7 @@ function Window:AddTab(name)
 
 	local btn = create("TextButton", { Name = "Tab_" .. name, Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Ink, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 30), LayoutOrder = order }, self.TabList)
 	tab.Button = btn
-	local label = textLabel(name, Library.TabTextSize or 18)
+	local label = textLabel(name, Library.TabTextSize or 20)
 	label.Size = UDim2.new(1, -10, 1, 0)
 	label.Position = UDim2.new(0, 8, 0, 0)
 	label.TextTruncate = Enum.TextTruncate.AtEnd
@@ -1221,7 +1224,7 @@ function Window:Open()
 	self._open = true
 	if self._popTween then self._popTween:Cancel() end
 	self.Root.Visible = true
-	self.Launcher.Visible = false
+	self.Launcher.Visible = self._opt.AlwaysShowLauncher ~= false
 	self.RootScale.Scale = 0.85
 	self._popTween = TweenService:Create(self.RootScale, TWEEN_OPEN, { Scale = 1 })
 	self._popTween:Play()
@@ -1259,7 +1262,7 @@ end
 
 function Window:SetVisible(state)
 	state = state and true or false
-	if self.Launcher then self.Launcher.Visible = state and not self._open end
+	if self.Launcher then self.Launcher.Visible = state and (self._opt.AlwaysShowLauncher ~= false or not self._open) end
 	if self.Root then self.Root.Visible = state and self._open end
 	return self
 end
