@@ -813,7 +813,9 @@ function Window:_makeDraggable(handle, target, onFinish)
 	handle.InputBegan:Connect(function(input)
 		if not isPointer(input) then return end
 		local startMouse = input.Position
-		local startPos = target.AbsolutePosition
+		local parent = target.Parent
+		local origin = parent and parent.AbsolutePosition or Vector2.zero
+		local startPos = target.AbsolutePosition - origin -- relative to the parent, so the GUI inset can't shift it
 		local moved = false
 		self._activeDrag = function(pos)
 			local d = pos - startMouse
