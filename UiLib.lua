@@ -43,22 +43,22 @@ local Library = {}
 Library.FontFace = Font.new("rbxassetid://12187375716", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 
 Library.Theme = {
-	Background = Color3.fromRGB(18, 9, 17),
-	BackgroundTransparency = 0.06,
-	Ink = Color3.fromRGB(244, 244, 240),
-	Header = Color3.fromRGB(164, 142, 253),
-	Label = Color3.fromRGB(238, 238, 234),
-	Muted = Color3.fromRGB(80, 168, 180),
+	Background = Color3.fromRGB(18, 14, 14),
+	BackgroundTransparency = 0.04,
+	Ink = Color3.fromRGB(240, 232, 222),
+	Header = Color3.fromRGB(255, 170, 50),
+	Label = Color3.fromRGB(245, 245, 240),
+	Muted = Color3.fromRGB(175, 168, 160),
 	Value = Color3.fromRGB(255, 255, 255),
-	Accent = Color3.fromRGB(164, 142, 200),
-	On = Color3.fromRGB(100, 230, 160),
-	Off = Color3.fromRGB(74, 68, 88),
-	Flash = Color3.fromRGB(255, 255, 220),
+	Accent = Color3.fromRGB(228, 122, 50),
+	On = Color3.fromRGB(140, 230, 160),
+	Off = Color3.fromRGB(50, 46, 44),
+	Flash = Color3.fromRGB(255, 228, 190),
 	Shadow = Color3.fromRGB(0, 0, 0),
 	Danger = Color3.fromRGB(235, 51, 90),
-	Well = Color3.fromRGB(24, 18, 28),
-	List = Color3.fromRGB(19, 14, 14),
-	Neutral = Color3.fromRGB(60, 60, 78),
+	Well = Color3.fromRGB(24, 22, 22),
+	List = Color3.fromRGB(22, 18, 18),
+	Neutral = Color3.fromRGB(70, 62, 56),
 }
 local Theme = Library.Theme
 
@@ -923,7 +923,7 @@ function Window:_buildWindow()
 	local header = create("TextButton", { Name = "Header", Text = "", AutoButtonColor = false, BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.05, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 38) }, root)
 	self.Header = header
 	local grad = create("UIGradient", {
-		Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Theme.Header), ColorSequenceKeypoint.new(0.5, Theme.Flash), ColorSequenceKeypoint.new(1, Theme.Accent) }),
+		Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Theme.Header), ColorSequenceKeypoint.new(0.55, Theme.Header), ColorSequenceKeypoint.new(1, Theme.Flash) }),
 		Rotation = -12, Offset = Vector2.new(-0.8, 0),
 	}, header)
 	self._headerRotate = TweenService:Create(grad, TweenInfo.new(9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Rotation = 12 })
