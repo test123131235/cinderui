@@ -894,10 +894,17 @@ end
 function Window:_makeResizable(root)
 	local grip = create("TextButton", { Name = "Grip", Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 0, 1, 0), Size = UDim2.fromOffset(26, 18), ZIndex = 4 }, root)
 	hoverScale(grip, grip, 1.2)
-	for _, inset in ipairs({ 4, 9 }) do
-		local mark = create("Frame", { Name = "Mark", BackgroundTransparency = 1, BorderSizePixel = 0, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -3, 1, -3), Size = UDim2.fromOffset(18 - inset, 26 - inset), Rotation = 45, ZIndex = 4 }, grip)
-		create("UIStroke", { Color = Theme.Ink, Thickness = 1, Transparency = 0.35 }, mark)
-	end
+	local arrow = textLabel("v", 20, Enum.TextXAlignment.Center) -- same font as the rest; rotated to point down-right
+	arrow.Name = "Arrow"
+	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	arrow.Size = UDim2.fromOffset(20, 20)
+	arrow.Rotation = -45
+	arrow.TextColor3 = Theme.Muted
+	arrow.ZIndex = 4
+	arrow.Parent = grip
+	grip.MouseEnter:Connect(function() TweenService:Create(arrow, TweenInfo.new(0.16), { TextColor3 = Theme.Flash }):Play() end)
+	grip.MouseLeave:Connect(function() TweenService:Create(arrow, TweenInfo.new(0.22), { TextColor3 = Theme.Muted }):Play() end)
 	grip.InputBegan:Connect(function(input)
 		if not isPointer(input) then return end
 		local startMouse = input.Position
