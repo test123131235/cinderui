@@ -943,15 +943,15 @@ function Window:_buildWindow()
 	self.Title = title
 
 	local close = create("TextButton", { Name = "Close", Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(40, 28), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), ZIndex = 2 }, header)
-	local x = create("Frame", { Name = "X", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), ZIndex = 3 }, close)
-	local bars = {}
-	for _, rot in ipairs({ 45, -45 }) do
-		bars[#bars + 1] = create("Frame", { BackgroundColor3 = Theme.Label, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(18, 3), Rotation = rot, ZIndex = 3 }, x)
-	end
+	local x = textLabel("x", 24, Enum.TextXAlignment.Center)
+	x.Name = "X"
+	x.Size = UDim2.fromScale(1, 1)
+	x.ZIndex = 3
+	x.Parent = close
 	hoverGlow(close, close, Theme.Danger, 0.55)
 	hoverScale(close, close, 1.2)
-	close.MouseEnter:Connect(function() for _, b in ipairs(bars) do TweenService:Create(b, TweenInfo.new(0.16), { BackgroundColor3 = Theme.Flash }):Play() end end)
-	close.MouseLeave:Connect(function() for _, b in ipairs(bars) do TweenService:Create(b, TweenInfo.new(0.22), { BackgroundColor3 = Theme.Label }):Play() end end)
+	close.MouseEnter:Connect(function() TweenService:Create(x, TweenInfo.new(0.16), { TextColor3 = Theme.Flash }):Play() end)
+	close.MouseLeave:Connect(function() TweenService:Create(x, TweenInfo.new(0.22), { TextColor3 = Theme.Label }):Play() end)
 	close.MouseButton1Click:Connect(function() self:Close() end)
 
 	-- sidebar
