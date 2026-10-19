@@ -974,7 +974,14 @@ function Window:_buildWindow()
 	self.TabList = tabList
 	create("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }, tabList)
 	create("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 6) }, sidebar)
-	self.Marker = create("Frame", { Name = "Marker", BorderSizePixel = 0, BackgroundColor3 = Theme.Accent, BackgroundTransparency = 1, Size = UDim2.new(0, 2, 0, 0), ZIndex = 2 }, sidebar)
+	local marker = textLabel("I", 24, Enum.TextXAlignment.Center)
+	marker.Name = "Marker"
+	marker.TextColor3 = Theme.Accent
+	marker.TextTransparency = 1
+	marker.Size = UDim2.fromOffset(10, 28)
+	marker.ZIndex = 2
+	marker.Parent = sidebar
+	self.Marker = marker
 
 	-- divider
 	local divider = makeRule(10)
@@ -1031,8 +1038,8 @@ function Window:AddTab(name)
 	local btn = create("TextButton", { Name = "Tab_" .. name, Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Ink, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 30), LayoutOrder = order }, self.TabList)
 	tab.Button = btn
 	local label = textLabel(name, Library.TabTextSize or 20)
-	label.Size = UDim2.new(1, -10, 1, 0)
-	label.Position = UDim2.new(0, 8, 0, 0)
+	label.Size = UDim2.new(1, -16, 1, 0)
+	label.Position = UDim2.new(0, 14, 0, 0)
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	label.Parent = btn
 	tab.Label = label
@@ -1091,21 +1098,18 @@ function Window:_moveMarker(tab)
 		self._markerShimmer:Cancel()
 		self._markerShimmer = nil
 	end
-	local pos = UDim2.new(0, 0, 0, (tab.SidebarOrder - 1) * 34 + 10 - 10 + 4)
-	local fullSize = UDim2.new(0, 3, 0, 22)
-	marker.BackgroundColor3 = Theme.Flash
+	local pos = UDim2.new(0, 0, 0, (tab.SidebarOrder - 1) * 34 + 1)
+	marker.TextColor3 = Theme.Flash
 	if first then
 		marker.Position = pos
-		marker.Size = UDim2.new(0, 3, 0, 0)
-		marker.BackgroundTransparency = 1
-		TweenService:Create(marker, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = fullSize, BackgroundTransparency = 0 }):Play()
+		TweenService:Create(marker, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { TextTransparency = 0 }):Play()
 	else
 		TweenService:Create(marker, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = pos }):Play()
 	end
-	TweenService:Create(marker, TweenInfo.new(0.3), { BackgroundColor3 = Theme.Accent }):Play()
+	TweenService:Create(marker, TweenInfo.new(0.3), { TextColor3 = Theme.Accent }):Play()
 	task.delay(0.35, function()
 		if self._destroyed or self._markerTab ~= tab then return end
-		local tw = TweenService:Create(marker, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundColor3 = Theme.Accent:Lerp(Color3.new(1, 1, 1), 0.4) })
+		local tw = TweenService:Create(marker, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextColor3 = Theme.Accent:Lerp(Color3.new(1, 1, 1), 0.4) })
 		self._markerShimmer = tw
 		tw:Play()
 	end)
