@@ -43,6 +43,7 @@ local Library = {}
 
 Library.FontFace = Font.new("rbxassetid://12187375716", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 Library.TextScale = 1 -- multiplies every text size in the UI (e.g. 1.15 = 15% bigger)
+Library.Version = 3
 
 Library.Theme = {
 	Background = Color3.fromRGB(18, 14, 14),
@@ -453,12 +454,13 @@ function Tab:AddSlider(def)
 end
 
 -- popup list used by both dropdowns ---------------------------------------------------------------
-local function makePopup(window, row, baseHeight)
+local function makePopup(window, row, baseHeight, px, pw)
+	px, pw = px or 0.42, pw or 0.58
 	local list = create("ScrollingFrame", {
 		Name = "Options", Visible = false, Active = true, BackgroundColor3 = Theme.List, BackgroundTransparency = 0.04,
 		BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = Theme.Ink, ScrollBarImageTransparency = 0.5,
-		CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Size = UDim2.new(0.58, 0, 0, 0),
-		Position = UDim2.new(0.42, 0, 0, baseHeight), ZIndex = 3,
+		CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Size = UDim2.new(pw, 0, 0, 0),
+		Position = UDim2.new(px, 0, 0, baseHeight), ZIndex = 3,
 	}, row)
 	plainStroke(list)
 	create("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, SortOrder = Enum.SortOrder.LayoutOrder }, list)
@@ -467,7 +469,7 @@ local function makePopup(window, row, baseHeight)
 	local function h() return math.min(popup.Count, 8) * 24 end
 	function popup.resize()
 		row.Size = UDim2.new(1, 0, 0, baseHeight + (popup.Open and h() + 4 or 0))
-		list.Size = UDim2.new(0.58, 0, 0, popup.Open and h() or 0)
+		list.Size = UDim2.new(pw, 0, 0, popup.Open and h() or 0)
 	end
 	function popup.set(state)
 		state = state and popup.Count > 0
@@ -655,6 +657,188 @@ function Tab:AddInput(def)
 	self:_attach(row)
 	return self
 end
+
+-- original Wyvern controls: account-name box + dropdown on one row -------------------------------
+function Tab:AddColumnHeader(def)
+	def = def or {}
+	local row = newRow(24)
+	row.Name = "ColumnHeader"
+	local function col(text, x, w)
+		local l = textLabel(string.upper(tostring(text or "")), 23, Enum.TextXAlignment.Left)
+		l.TextColor3 = Theme.Muted
+		l.Size = UDim2.new(w, -4, 1, 0)
+		l.Position = UDim2.new(x, 0, 0, 0)
+		l.Parent = row
+	end
+	col(def.left, 0, 0.3)
+	col(def.middle, 0.3, 0.4)
+	col(def.right, 0.7, def.right2 and 0.15 or 0.3)
+	if def.right2 then col(def.right2, 0.85, 0.15) end
+	self:_attach(row)
+	return self
+end
+
+local function newFieldBox(row, def, xScale, wScale)
+	local well = newWell(30)
+	well.Size = UDim2.new(wScale, -4, 0, 30)
+	well.Position = UDim2.new(xScale, 0, 0, 2)
+	well.Parent = row
+	hoverGlow(well, well, Theme.Accent)
+	local box = create("TextBox", {
+		Name = "Field", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 7, 0, 0), AutoLocalize = false,
+		FontFace = Library.FontFace, TextSize = math.floor(25 * (Library.TextScale or 1) + 0.5), TextColor3 = Theme.Value, PlaceholderText = tostring(def.placeholder or ""),
+		PlaceholderColor3 = Theme.Muted, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, ClipsDescendants = true, Text = "",
+	}, well)
+	return box
+end
+
+local function wireFieldBox(window, box, def)
+	local function render(v)
+		if box:IsFocused() then return end
+		box.Text = v == nil and "" or tostring(v)
+	end
+	box.FocusLost:Connect(function()
+		if def.numeric then
+			local n = tonumber(box.Text)
+			if n == nil then render(window:Get(def.key)) return end
+			window:Set(def.key, n)
+		else
+			window:Set(def.key, box.Text)
+		end
+	end)
+	window:_register(def, "input", render, def.numeric and 0 or "")
+end
+
+local function newSmallSelected(row, textSize)
+	local btn = create("TextButton", {
+		Name = "Selected", Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Well, BackgroundTransparency = 0.15,
+		BorderSizePixel = 0, Size = UDim2.new(0.3, 0, 0, 30), Position = UDim2.new(0.7, 0, 0, 2),
+	}, row)
+	addEdge(btn, Theme.Ink, nil, 0.5)
+	hoverGlow(btn, btn, Theme.Accent)
+	local l = textLabel("", textSize or 24)
+	l.Size = UDim2.new(1, -24, 1, 0)
+	l.Position = UDim2.new(0, 6, 0, 0)
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.Parent = btn
+	local arrow = textLabel("v", 23, Enum.TextXAlignment.Center)
+	arrow.TextColor3 = Theme.Muted
+	arrow.Size = UDim2.new(0, 16, 1, 0)
+	arrow.Position = UDim2.new(1, -18, 0, 0)
+	arrow.Parent = btn
+	return btn, l, arrow
+end
+
+-- def: key/label/placeholder/numeric (the text box) + dropdownKey/dropdownOptions/dropdownDefault/dropdownCallback/dropdownPath (the dropdown)
+function Tab:AddInputDropdown(def)
+	requireKey(def, "inputdropdown")
+	local window = self._window
+	local options = {}
+	for _, o in ipairs(def.dropdownOptions or {}) do options[#options + 1] = tostring(o) end
+	local row = newRow(34)
+	row.Name = "InputDropdown_" .. tostring(def.key)
+	local l = textLabel(def.label or def.key, 13)
+	l.Size = UDim2.new(0.3, -6, 0, 34)
+	l.Parent = row
+	wireFieldBox(window, newFieldBox(row, def, 0.3, 0.4), def)
+
+	local ddef = { key = def.dropdownKey, label = def.dropdownLabel, default = def.dropdownDefault, path = def.dropdownPath, callback = def.dropdownCallback }
+	local selBtn, selLabel, arrow = newSmallSelected(row, 24)
+	local popup = makePopup(window, row, 34, 0.7, 0.3)
+	popup.Arrow = arrow
+	popup.Count = #options
+	local buttons = {}
+	local function highlight(v)
+		for name, lab in pairs(buttons) do lab.TextColor3 = name == tostring(v) and Theme.Accent or Theme.Label end
+	end
+	local function rebuild()
+		for _, c in ipairs(popup.List:GetChildren()) do
+			if c:IsA("TextButton") then c:Destroy() end
+		end
+		buttons = {}
+		popup.Count = #options
+		for i, name in ipairs(options) do
+			local b = create("TextButton", { Name = "Option_" .. name, Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 24), LayoutOrder = i }, popup.List)
+			local t = textLabel(name, 24)
+			t.Size = UDim2.new(1, -12, 1, 0)
+			t.Position = UDim2.new(0, 6, 0, 0)
+			t.TextTruncate = Enum.TextTruncate.AtEnd
+			t.Parent = b
+			buttons[name] = t
+			hoverRow(b)
+			b.MouseButton1Click:Connect(function()
+				popup.set(false)
+				window:Set(ddef.key, name)
+			end)
+		end
+		if ddef.key ~= nil then highlight(window:Get(ddef.key)) end
+		popup.resize()
+	end
+	local function render(v)
+		selLabel.Text = (v == nil or v == "") and "--" or tostring(v)
+		selLabel.TextColor3 = (v == nil or v == "") and Theme.Muted or Theme.Label
+		highlight(v)
+	end
+	selBtn.MouseButton1Click:Connect(function() popup.set(not popup.Open) end)
+	rebuild()
+	if ddef.key ~= nil then
+		local ctrl = window:_register(ddef, "dropdown", render, options[1])
+		ctrl.setOptions = function(list)
+			options = {}
+			for _, o in ipairs(list or {}) do options[#options + 1] = tostring(o) end
+			rebuild()
+			render(window:Get(ddef.key))
+		end
+		ctrl.getOptions = function() return table.clone(options) end
+	end
+	self:_attach(row)
+	return self
+end
+
+-- def: key/label/placeholder (the text box) + dropdownOptions = { {key,label,default}, ... } (each is its own boolean key)
+function Tab:AddInputMultiDropdown(def)
+	requireKey(def, "inputmultidropdown")
+	local window = self._window
+	local options = def.dropdownOptions or {}
+	local row = newRow(34)
+	row.Name = "InputMultiDropdown_" .. tostring(def.key)
+	local l = textLabel(def.label or def.key, 26)
+	l.Size = UDim2.new(0.3, -6, 0, 34)
+	l.Parent = row
+	wireFieldBox(window, newFieldBox(row, def, 0.3, 0.4), def)
+
+	local selBtn, selLabel, arrow = newSmallSelected(row, 24)
+	local popup = makePopup(window, row, 34, 0.7, 0.3)
+	popup.Arrow = arrow
+	popup.Count = #options
+	local function summary()
+		local n = 0
+		for _, o in ipairs(options) do
+			if window:Get(o.key) then n += 1 end
+		end
+		selLabel.Text = n .. "/" .. #options
+		selLabel.TextColor3 = n == 0 and Theme.Muted or Theme.Label
+	end
+	selBtn.MouseButton1Click:Connect(function() popup.set(not popup.Open) end)
+	for i, option in ipairs(options) do
+		local b = create("TextButton", { Name = "Option_" .. tostring(option.key), Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 24), LayoutOrder = i }, popup.List)
+		local t = textLabel(option.label or option.key, 14)
+		t.Size = UDim2.new(1, -30, 1, 0)
+		t.Position = UDim2.new(0, 6, 0, 0)
+		t.TextTruncate = Enum.TextTruncate.AtEnd
+		t.Parent = b
+		local box, render = newCheckBox(b, 16)
+		box.Position = UDim2.new(1, -8, 0.5, 0)
+		hoverScale(box, b, 1.15)
+		hoverRow(b)
+		b.MouseButton1Click:Connect(function() window:Set(option.key, not window:Get(option.key)) end)
+		window:_register(option, "toggle", function(v) render(v) summary() end, false)
+	end
+	summary()
+	self:_attach(row)
+	return self
+end
+
 
 function Tab:AddColorPicker(def)
 	requireKey(def, "colorpicker")
@@ -1210,6 +1394,9 @@ function Window:OnChange(fn)
 end
 
 -- fires every control's callback with its current value (handy right after loading a config / on startup)
+-- kept for compatibility with scripts that call it (does nothing by itself)
+function Window:Preload() return self end
+
 function Window:RunCallbacks()
 	for key, ctrl in pairs(self._controls) do
 		if type(ctrl.def.callback) == "function" then
