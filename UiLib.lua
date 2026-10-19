@@ -1270,7 +1270,9 @@ function Window:Notify(title, text, duration)
 		BackgroundColor3 = Theme.Background, BackgroundTransparency = Theme.BackgroundTransparency, BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 20,
 	}, self._notifyHolder)
-	addEdge(toast, Theme.Ink, 20, 0.8)
+	-- plain stroke (not addEdge): the sketch edge frames are scale-sized, and inside an auto-sized,
+	-- list-laid-out toast they make it grow to fill the whole screen
+	plainStroke(toast, Theme.Ink, 0.35)
 	create("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, toast)
 	create("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2) }, toast)
 	local t = textLabel(title or "", 15)
